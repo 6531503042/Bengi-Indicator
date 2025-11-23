@@ -1,0 +1,38 @@
+{
+  "name": "bengi-indicator",
+  "version": "1.0.0",
+  "description": "Premium BTC/USD Forex Indicator with LINE Bot notifications",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc --watch",
+    "test:line": "node test-line.js"
+  },
+  "keywords": [
+    "forex",
+    "btc",
+    "indicator",
+    "line-bot",
+    "trading"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@line/bot-sdk": "^9.0.0",
+    "axios": "^1.7.0",
+    "node-cron": "^3.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
+
