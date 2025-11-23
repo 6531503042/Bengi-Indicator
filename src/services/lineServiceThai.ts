@@ -283,13 +283,14 @@ export class LineServiceThai {
   /**
    * ส่งสัญญาณไปยัง LINE user
    */
-  async sendSignal(signal: Signal, targetUserId?: string): Promise<void> {
+  async sendSignal(signal: Signal, targetUserId?: string, includeQuickReply: boolean = true): Promise<void> {
     try {
       const userId = targetUserId || this.userId;
       const messageText = this.formatSignalMessageThai(signal);
       const message: Message = {
         type: 'text',
         text: messageText,
+        ...(includeQuickReply && { quickReply: this.createTimeframeQuickReply() }),
       };
 
       await this.client.pushMessage(userId, message);
