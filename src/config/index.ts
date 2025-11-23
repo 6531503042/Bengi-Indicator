@@ -23,7 +23,9 @@ export const config = {
   
   // LINE Bot
   lineChannelAccessToken: getEnv('LINE_CHANNEL_ACCESS_TOKEN'),
+  lineChannelSecret: getEnv('LINE_CHANNEL_SECRET'),
   lineUserId: getEnv('LINE_USER_ID'),
+  webhookPort: parseInt(process.env.PORT || process.env.WEBHOOK_PORT || '3000', 10),
   
   // Scheduler
   cronSchedule: getEnv('CRON_SCHEDULE', '*/5 * * * *'), // Every 5 minutes by default

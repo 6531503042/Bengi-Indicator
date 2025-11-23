@@ -244,19 +244,27 @@ export class LineService {
   /**
    * Send raw text message to LINE user
    */
-  async sendTextMessage(text: string): Promise<void> {
+  async sendTextMessage(text: string, targetUserId?: string): Promise<void> {
     try {
+      const userId = targetUserId || this.userId;
       const message: Message = {
         type: 'text',
         text,
       };
 
-      await this.client.pushMessage(this.userId, message);
+      await this.client.pushMessage(userId, message);
       console.log(`✅ Sent text message to LINE`);
     } catch (error) {
       console.error(`❌ Failed to send LINE message:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Get LINE client (for webhook service)
+   */
+  getClient(): Client {
+    return this.client;
   }
 
   /**
