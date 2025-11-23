@@ -30,9 +30,15 @@ export const config = {
   // Scheduler
   cronSchedule: getEnv('CRON_SCHEDULE', '*/5 * * * *'), // Every 5 minutes by default
   
-  // Timeframes to analyze
+  // Timeframes to analyze (for scheduled job - only 1H)
   timeframes: [
+    { interval: '1h', label: '1H' },
+  ] as Array<{ interval: string; label: string }>,
+  
+  // All available timeframes (for manual requests)
+  allTimeframes: [
     { interval: '15min', label: '15m' },
+    { interval: '30min', label: '30m' },
     { interval: '1h', label: '1H' },
     { interval: '4h', label: '4H' },
   ] as Array<{ interval: string; label: string }>,

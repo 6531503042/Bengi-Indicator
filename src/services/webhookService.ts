@@ -69,7 +69,13 @@ export class WebhookService {
     const text = event.message.text.toLowerCase().trim();
     const userId = event.source.userId || config.lineUserId;
 
-    // Command keywords (Thai and English)
+    // Timeframe-specific commands
+    const tf15mKeywords = ['tf-15m', 'tf-15', '15m', '15 นาที', '15นาที', 'ขอแนวทาง tf-15m'];
+    const tf30mKeywords = ['tf-30m', 'tf-30', '30m', '30 นาที', '30นาที', 'ขอแนวทาง tf-30m'];
+    const tf1hrKeywords = ['tf-1hr', 'tf-1h', 'tf-1', '1hr', '1h', '1 ชั่วโมง', '1ชั่วโมง', 'ขอแนวทาง tf-1hr'];
+    const tf4hrKeywords = ['tf-4hr', 'tf-4h', 'tf-4', '4hr', '4h', '4 ชั่วโมง', '4ชั่วโมง', 'ขอแนวทาง tf-4hr'];
+
+    // General signal keywords
     const signalKeywords = [
       'signal',
       'สัญญาณ',
@@ -90,35 +96,66 @@ export class WebhookService {
 
     const backtestKeywords = ['backtest', 'ทดสอบ', 'test', 'ทดลอง'];
 
-    // Check if message matches any keyword
-    const isSignalRequest = signalKeywords.some((keyword) => text.includes(keyword));
-    const isHelpRequest = helpKeywords.some((keyword) => text.includes(keyword));
-    const isBacktestRequest = backtestKeywords.some((keyword) => text.includes(keyword));
-
-    if (isSignalRequest) {
+    // Check for timeframe-specific requests
+    if (tf15mKeywords.some((keyword) => text.includes(keyword))) {
+      await this.sendTimeframeSignal(userId, '15min', '15m');
+    } else if (tf30mKeywords.some((keyword) => text.includes(keyword))) {
+      await this.sendTimeframeSignal(userId, '30min', '30m');
+    } else if (tf1hrKeywords.some((keyword) => text.includes(keyword))) {
+      await this.sendTimeframeSignal(userId, '1h', '1H');
+    } else if (tf4hrKeywords.some((keyword) => text.includes(keyword))) {
+      await this.sendTimeframeSignal(userId, '4h', '4H');
+    } else if (signalKeywords.some((keyword) => text.includes(keyword))) {
+      // Default: send 1H signal (same as scheduled)
       await this.sendSignalResponse(userId);
-    } else if (isHelpRequest) {
+    } else if (helpKeywords.some((keyword) => text.includes(keyword))) {
       await this.sendHelpMessage(userId);
-    } else if (isBacktestRequest) {
+    } else if (backtestKeywords.some((keyword) => text.includes(keyword))) {
       await this.sendBacktestMessage(userId);
     } else {
-      // Default: send help message
+      // Default: send help message with quick reply
       await this.sendHelpMessage(userId);
     }
   }
 
   /**
-   * Send signal response
+   * Send signal for specific timeframe
+   */
+  private async sendTimeframeSignal(userId: string, interval: string, label: string): Promise<void> {
+    try {
+      // Send loading message
+      await this.lineService.sendTextMessage(
+        `⏳ กำลังวิเคราะห์สัญญาณ BTC/USD (${label})...\nกรุณารอสักครู่...`,
+        userId
+      );
+
+      // Generate signal for specific timeframe
+      const candles = await this.dataService.fetchCandles(interval);
+      const signal = this.signalService.generateSignal(candles, label);
+
+      // Send signal
+      await this.lineService.sendSignal(signal, userId);
+    } catch (error) {
+      console.error(`Error sending ${label} signal:`, error);
+      await this.lineService.sendTextMessage(
+        `❌ เกิดข้อผิดพลาดในการดึงสัญญาณ ${label}\nกรุณาลองใหม่อีกครั้ง`,
+        userId
+      );
+    }
+  }
+
+  /**
+   * Send signal response (default: 1H)
    */
   private async sendSignalResponse(userId: string): Promise<void> {
     try {
       // Send loading message
       await this.lineService.sendTextMessage(
-        `⏳ กำลังวิเคราะห์สัญญาณ BTC/USD...\nกรุณารอสักครู่...`,
+        `⏳ กำลังวิเคราะห์สัญญาณ BTC/USD (1H)...\nกรุณารอสักครู่...`,
         userId
       );
 
-      // Generate signals
+      // Generate signals (only 1H for scheduled)
       const signals = await this.signalService.generateSignalsForTimeframes(
         (interval: string) => this.dataService.fetchCandles(interval),
         config.timeframes
@@ -126,9 +163,6 @@ export class WebhookService {
 
       // Send signals
       await this.lineService.sendSignals(signals, userId);
-
-      // Send summary
-      await this.lineService.sendSummary(signals, userId);
     } catch (error) {
       console.error('Error sending signal response:', error);
       await this.lineService.sendTextMessage(

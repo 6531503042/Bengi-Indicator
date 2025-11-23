@@ -1,4 +1,4 @@
-import { Client, Message } from '@line/bot-sdk';
+import { Client, Message, QuickReply, QuickReplyItem } from '@line/bot-sdk';
 import { Signal } from '../types';
 
 export class LineServiceThai {
@@ -366,6 +366,76 @@ export class LineServiceThai {
     summary += `ตรวจสอบข้อความแต่ละกรอบเวลาเพื่อดูการวิเคราะห์รายละเอียด`;
 
     await this.sendTextMessage(summary, userId);
+  }
+
+  /**
+   * สร้าง Quick Reply buttons สำหรับเลือก timeframe
+   */
+  createTimeframeQuickReply(): QuickReply {
+    return {
+      items: [
+        {
+          type: 'action',
+          action: {
+            type: 'message',
+            label: '📊 15 นาที',
+            text: 'ขอแนวทาง tf-15m',
+          },
+        },
+        {
+          type: 'action',
+          action: {
+            type: 'message',
+            label: '📊 30 นาที',
+            text: 'ขอแนวทาง tf-30m',
+          },
+        },
+        {
+          type: 'action',
+          action: {
+            type: 'message',
+            label: '📊 1 ชั่วโมง',
+            text: 'ขอแนวทาง tf-1hr',
+          },
+        },
+        {
+          type: 'action',
+          action: {
+            type: 'message',
+            label: '📊 4 ชั่วโมง',
+            text: 'ขอแนวทาง tf-4hr',
+          },
+        },
+        {
+          type: 'action',
+          action: {
+            type: 'message',
+            label: '❓ คำสั่ง',
+            text: 'help',
+          },
+        },
+      ],
+    };
+  }
+
+  /**
+   * ส่งข้อความพร้อม Quick Reply
+   */
+  async sendTextMessageWithQuickReply(text: string, targetUserId?: string): Promise<void> {
+    try {
+      const userId = targetUserId || this.userId;
+      const message: Message = {
+        type: 'text',
+        text,
+        quickReply: this.createTimeframeQuickReply(),
+      };
+
+      await this.client.pushMessage(userId, message);
+      console.log(`✅ ส่งข้อความพร้อม Quick Reply ไปยัง LINE`);
+    } catch (error) {
+      console.error(`❌ ไม่สามารถส่งข้อความ LINE:`, error);
+      throw error;
+    }
   }
 
   /**
