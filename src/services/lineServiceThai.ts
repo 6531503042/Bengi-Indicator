@@ -58,9 +58,8 @@ export class LineServiceThai {
       minute: '2-digit',
     });
 
-    let message = `╔═══════════════════════════╗\n`;
-    message += `║  📊 สัญญาณ BTC/USD พรีเมียม  ║\n`;
-    message += `╚═══════════════════════════╝\n\n`;
+    let message = `📊 สัญญาณ BTC/USD พรีเมียม\n`;
+    message += `═══════════════════\n\n`;
 
     // Header Info
     message += `⏰ กรอบเวลา: ${timeframeLabel}\n`;
@@ -68,9 +67,8 @@ export class LineServiceThai {
     message += `💰 ราคาปัจจุบัน: $${price.toFixed(2)}\n\n`;
 
     // Trend Analysis
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `📈 การวิเคราะห์เทรนด์\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `───────────────────\n`;
     
     const trendThai = trend === 'UPTREND' ? 'เทรนด์ขาขึ้น' : trend === 'DOWNTREND' ? 'เทรนด์ขาลง' : 'เทรนด์ข้าง';
     message += `เทรนด์: ${this.getTrendEmoji(trend)} ${trendThai}\n`;
@@ -84,7 +82,7 @@ export class LineServiceThai {
     message += `\n`;
 
     // Action Signal
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `\n`;
     if (action === 'BUY') {
       message += `🟢 สัญญาณ: ซื้อ (BUY)\n`;
     } else if (action === 'SELL') {
@@ -92,12 +90,12 @@ export class LineServiceThai {
     } else {
       message += `⏸ สัญญาณ: รอ (WAIT)\n`;
     }
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `───────────────────\n\n`;
 
     // Risk Management (only for BUY/SELL)
     if (action !== 'WAIT' && sl && tp) {
       message += `🎯 ระดับเข้า-ออก\n`;
-      message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      message += `───────────────────\n`;
       message += `📍 จุดเข้า: $${price.toFixed(2)}\n`;
       message += `🛑 Stop Loss: $${sl.toFixed(2)} (${((Math.abs(price - sl) / price) * 100).toFixed(2)}%)\n`;
       message += `🎯 Take Profit: $${tp.toFixed(2)} (${((Math.abs(tp - price) / price) * 100).toFixed(2)}%)\n`;
@@ -110,8 +108,8 @@ export class LineServiceThai {
 
       // Confidence & Risk Level
       if (confidence !== undefined) {
-        message += `🎲 ระดับความมั่นใจและความเสี่ยง\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        message += `\n🎲 ระดับความมั่นใจและความเสี่ยง\n`;
+        message += `───────────────────\n`;
         message += `คะแนนความมั่นใจ: ${confidence}/100 ${this.getConfidenceEmoji(confidence)}\n`;
         if (riskLevel) {
           const riskThai = riskLevel === 'LOW' ? 'ต่ำ' : riskLevel === 'MEDIUM' ? 'ปานกลาง' : 'สูง';
@@ -123,7 +121,7 @@ export class LineServiceThai {
 
     // Technical Indicators
     message += `📊 ตัวชี้วัดทางเทคนิค\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `───────────────────\n`;
     
     if (rsi !== null && rsi !== undefined) {
       let rsiStatus = '';
@@ -159,15 +157,15 @@ export class LineServiceThai {
     message += `\n`;
 
     // Pattern Analysis
-    message += `📝 การวิเคราะห์แพทเทิร์น\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `\n📝 การวิเคราะห์แพทเทิร์น\n`;
+    message += `───────────────────\n`;
     message += `${this.translatePatternText(patternText)}\n`;
     message += `\n`;
 
     // Entry Reason (if available)
     if (entryReason && action !== 'WAIT') {
-      message += `✅ เหตุผลในการเข้า\n`;
-      message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      message += `\n✅ เหตุผลในการเข้า\n`;
+      message += `───────────────────\n`;
       message += `${this.translateEntryReason(entryReason)}\n`;
       message += `\n`;
     }
@@ -178,11 +176,9 @@ export class LineServiceThai {
     }
 
     // Chart Link
-    message += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    message += `📈 ดูกราฟ:\n`;
+    message += `\n📈 ดูกราฟ:\n`;
     message += `https://www.tradingview.com/chart/?symbol=BTCUSD&interval=${timeframeLabel.toLowerCase()}\n`;
-    message += `\n`;
-    message += `💡 ตัวชี้วัดพรีเมียมโดย Bengi\n`;
+    message += `\n💡 ตัวชี้วัดพรีเมียมโดย Bengi\n`;
 
     return message;
   }
@@ -342,9 +338,8 @@ export class LineServiceThai {
     const activeSignals = signals.filter((s) => s.action !== 'WAIT' && s.status !== 'NO_SIGNAL');
 
     if (activeSignals.length === 0) {
-      const summary = `╔═══════════════════════════╗\n` +
-        `║  📊 สรุป BTC/USD พรีเมียม  ║\n` +
-        `╚═══════════════════════════╝\n\n` +
+      const summary = `📊 สรุป BTC/USD พรีเมียม\n` +
+        `═══════════════════\n\n` +
         `⏸ ไม่มีสัญญาณที่ใช้งานได้ในขณะนี้\n` +
         `กรอบเวลาทั้งหมดแสดงสถานะรอ (WAIT)\n` +
         `\n` +
@@ -354,9 +349,8 @@ export class LineServiceThai {
       return;
     }
 
-    let summary = `╔═══════════════════════════╗\n`;
-    summary += `║  📊 สรุป BTC/USD พรีเมียม  ║\n`;
-    summary += `╚═══════════════════════════╝\n\n`;
+    let summary = `📊 สรุป BTC/USD พรีเมียม\n`;
+    summary += `═══════════════════\n\n`;
     summary += `🎯 สัญญาณที่ใช้งานได้: ${activeSignals.length}\n\n`;
 
     for (const signal of activeSignals) {

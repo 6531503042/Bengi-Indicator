@@ -142,33 +142,25 @@ export class WebhookService {
    * Send help message
    */
   private async sendHelpMessage(userId: string): Promise<void> {
-    const helpText = `╔═══════════════════════════╗
-║   📱 คำสั่งที่ใช้ได้   ║
-╚═══════════════════════════╝
-
-📊 ขอสัญญาณ:
-• สัญญาณ
-• signal
-• สัญญาณใหม่
-• ราคา
-• btc
-
-📈 ทดสอบระบบ:
-• backtest
-• ทดสอบ
-
-❓ ความช่วยเหลือ:
-• help
-• ช่วย
-• คำสั่ง
-
-💡 ตัวอย่าง:
-พิมพ์ "สัญญาณ" เพื่อดูสัญญาณล่าสุด
-พิมพ์ "backtest" เพื่อดูผลการทดสอบ
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-🤖 Bengi Indicator Premium
-`;
+    const helpText = `📱 คำสั่งที่ใช้ได้\n` +
+      `═══════════════════\n\n` +
+      `📊 ขอสัญญาณ:\n` +
+      `• สัญญาณ\n` +
+      `• signal\n` +
+      `• สัญญาณใหม่\n` +
+      `• ราคา\n` +
+      `• btc\n\n` +
+      `📈 ทดสอบระบบ:\n` +
+      `• backtest\n` +
+      `• ทดสอบ\n\n` +
+      `❓ ความช่วยเหลือ:\n` +
+      `• help\n` +
+      `• ช่วย\n` +
+      `• คำสั่ง\n\n` +
+      `💡 ตัวอย่าง:\n` +
+      `พิมพ์ "สัญญาณ" เพื่อดูสัญญาณล่าสุด\n` +
+      `พิมพ์ "backtest" เพื่อดูผลการทดสอบ\n\n` +
+      `🤖 Bengi Indicator Premium`;
 
     await this.lineService.sendTextMessage(helpText, userId);
   }
