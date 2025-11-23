@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "watch": "tsc --watch",
-    "test:line": "node test-line.js"
+    "test:line": "node test-line.js",
+    "backtest": "ts-node src/scripts/backtest.ts"
   },
   "keywords": [
     "forex",

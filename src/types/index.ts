@@ -25,6 +25,19 @@ export interface Signal {
   sma200: number | null;
   status?: 'NO_SIGNAL';
   reason?: string;
+  // Advanced indicators
+  rsi?: number | null;
+  macd?: number | null;
+  macdSignal?: number | null;
+  macdHistogram?: number | null;
+  volume?: number | null;
+  volumeMA?: number | null;
+  supportLevel?: number | null;
+  resistanceLevel?: number | null;
+  confidence?: number; // 0-100
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
+  entryReason?: string;
+  exitStrategy?: string;
 }
 
 export interface TwelveDataResponse {
