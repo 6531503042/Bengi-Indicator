@@ -33,9 +33,31 @@ export function validateConfig(): void {
     'LINE_USER_ID',
   ];
 
+  // Debug: Log all environment variables (hide sensitive values)
+  console.log('\n🔍 Environment Variables Check:');
+  required.forEach((key) => {
+    const value = process.env[key];
+    if (value) {
+      const displayValue = value.length > 20 ? `${value.substring(0, 20)}...` : value;
+      console.log(`  ✅ ${key}: ${displayValue}`);
+    } else {
+      console.log(`  ❌ ${key}: NOT SET`);
+    }
+  });
+  console.log('');
+
   const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
+    console.error('\n❌ Missing Environment Variables:');
+    missing.forEach((key) => {
+      console.error(`   - ${key}`);
+    });
+    console.error('\n💡 Please check:');
+    console.error('   1. Railway Dashboard → Service → Variables tab');
+    console.error('   2. Make sure variables are set WITHOUT quotes');
+    console.error('   3. Restart deployment after adding variables\n');
+    
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
       `Please check your .env file or Railway environment variables.`
