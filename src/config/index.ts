@@ -2,16 +2,31 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+/**
+ * Helper function to get environment variable and trim quotes if present
+ */
+function getEnv(key: string, defaultValue: string = ''): string {
+  const value = process.env[key] || defaultValue;
+  // Remove surrounding quotes if present
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+  if (value.startsWith("'") && value.endsWith("'")) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
 export const config = {
   // Twelve Data API
-  twelveDataApiKey: process.env.TWELVE_DATA_API_KEY || '',
+  twelveDataApiKey: getEnv('TWELVE_DATA_API_KEY'),
   
   // LINE Bot
-  lineChannelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
-  lineUserId: process.env.LINE_USER_ID || '',
+  lineChannelAccessToken: getEnv('LINE_CHANNEL_ACCESS_TOKEN'),
+  lineUserId: getEnv('LINE_USER_ID'),
   
   // Scheduler
-  cronSchedule: process.env.CRON_SCHEDULE || '*/5 * * * *', // Every 5 minutes by default
+  cronSchedule: getEnv('CRON_SCHEDULE', '*/5 * * * *'), // Every 5 minutes by default
   
   // Timeframes to analyze
   timeframes: [
@@ -21,8 +36,8 @@ export const config = {
   ] as Array<{ interval: string; label: string }>,
   
   // App settings
-  sendSummary: process.env.SEND_SUMMARY === 'true',
-  enableLogging: process.env.ENABLE_LOGGING !== 'false',
+  sendSummary: getEnv('SEND_SUMMARY') === 'true',
+  enableLogging: getEnv('ENABLE_LOGGING', 'true') !== 'false',
 };
 
 // Validate required environment variables
@@ -36,17 +51,24 @@ export function validateConfig(): void {
   // Debug: Log all environment variables (hide sensitive values)
   console.log('\n🔍 Environment Variables Check:');
   required.forEach((key) => {
-    const value = process.env[key];
-    if (value) {
+    const rawValue = process.env[key];
+    const value = getEnv(key);
+    if (value && value !== '') {
       const displayValue = value.length > 20 ? `${value.substring(0, 20)}...` : value;
       console.log(`  ✅ ${key}: ${displayValue}`);
+      if (rawValue && (rawValue.startsWith('"') || rawValue.startsWith("'"))) {
+        console.log(`     ⚠️  Note: Quotes detected and removed automatically`);
+      }
     } else {
       console.log(`  ❌ ${key}: NOT SET`);
     }
   });
   console.log('');
 
-  const missing = required.filter((key) => !process.env[key]);
+  const missing = required.filter((key) => {
+    const value = getEnv(key);
+    return !value || value === '';
+  });
 
   if (missing.length > 0) {
     console.error('\n❌ Missing Environment Variables:');
