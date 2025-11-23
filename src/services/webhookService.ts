@@ -23,39 +23,35 @@ export class WebhookService {
     this.signalService = signalService;
     this.lineService = lineService;
 
-    // Parse JSON body
-    this.app.use(express.json());
-
-    // LINE webhook middleware
-    this.app.use(
-      '/webhook',
-      middleware({
-        channelSecret,
-        channelAccessToken,
-      } as any)
-    );
-
-    // Webhook endpoint
-    this.app.post('/webhook', async (req: Request, res: Response) => {
-      const events: WebhookEvent[] = req.body.events;
-
-      try {
-        for (const event of events) {
-          if (event.type === 'message' && event.message.type === 'text') {
-            await this.handleTextMessage(event);
-          }
-        }
-        res.status(200).send('OK');
-      } catch (error) {
-        console.error('Webhook error:', error);
-        res.status(500).send('Error');
-      }
-    });
-
-    // Health check
+    // Health check endpoint (before middleware)
     this.app.get('/health', (req: Request, res: Response) => {
       res.status(200).json({ status: 'ok' });
     });
+
+    // LINE webhook endpoint - must use raw body for signature verification
+    this.app.post(
+      '/webhook',
+      express.raw({ type: 'application/json' }),
+      middleware({
+        channelSecret,
+        channelAccessToken,
+      } as any),
+      async (req: Request, res: Response) => {
+        const events: WebhookEvent[] = (req as any).body.events;
+
+        try {
+          for (const event of events) {
+            if (event.type === 'message' && event.message.type === 'text') {
+              await this.handleTextMessage(event);
+            }
+          }
+          res.status(200).send('OK');
+        } catch (error) {
+          console.error('Webhook error:', error);
+          res.status(500).send('Error');
+        }
+      }
+    );
   }
 
   /**
