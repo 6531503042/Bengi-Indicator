@@ -4,23 +4,34 @@ import { DataService } from './services/dataService';
 import { SignalService } from './services/signalService';
 import { LineService } from './services/lineService';
 
-// Validate configuration
-try {
-  validateConfig();
-} catch (error) {
-  console.error('❌ Configuration error:', error instanceof Error ? error.message : error);
-  process.exit(1);
-}
+// Validate configuration with delay to allow logs to show
+setTimeout(() => {
+  try {
+    validateConfig();
+  } catch (error) {
+    console.error('\n❌ Configuration error:', error instanceof Error ? error.message : error);
+    console.error('\n⏳ Waiting 5 seconds before exit to see logs...\n');
+    setTimeout(() => {
+      process.exit(1);
+    }, 5000);
+    return;
+  }
+  
+  // Only initialize if config is valid
+  initializeApp();
+}, 500);
 
-// Initialize services
-const dataService = new DataService(config.twelveDataApiKey);
-const signalService = new SignalService();
-const lineService = new LineService(config.lineChannelAccessToken, config.lineUserId);
+function initializeApp() {
 
-/**
- * Main job function: Fetch data, generate signals, and send to LINE
- */
-async function runIndicatorJob(): Promise<void> {
+  // Initialize services
+  const dataService = new DataService(config.twelveDataApiKey);
+  const signalService = new SignalService();
+  const lineService = new LineService(config.lineChannelAccessToken, config.lineUserId);
+
+  /**
+   * Main job function: Fetch data, generate signals, and send to LINE
+   */
+  async function runIndicatorJob(): Promise<void> {
   const startTime = new Date();
   console.log(`\n🚀 Starting indicator job at ${startTime.toISOString()}`);
 
@@ -75,10 +86,10 @@ async function runIndicatorJob(): Promise<void> {
   }
 }
 
-/**
- * Start the scheduler
- */
-function startScheduler(): void {
+  /**
+   * Start the scheduler
+   */
+  function startScheduler(): void {
   console.log(`⏰ Scheduler started with schedule: ${config.cronSchedule}`);
   console.log(`📊 Monitoring timeframes: ${config.timeframes.map((tf) => tf.label).join(', ')}`);
   console.log(`📱 LINE User ID: ${config.lineUserId.substring(0, 10)}...`);
@@ -105,6 +116,7 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Start the application
-startScheduler();
+  // Start the application
+  startScheduler();
+}
 
