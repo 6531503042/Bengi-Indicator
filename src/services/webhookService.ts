@@ -218,10 +218,18 @@ export class WebhookService {
    * Start webhook server
    */
   start(port: number): void {
-    this.app.listen(port, () => {
+    this.app.listen(port, '0.0.0.0', () => {
       console.log(`🌐 Webhook server started on port ${port}`);
-      console.log(`📡 Webhook URL: /webhook`);
+      console.log(`📡 Webhook URL: http://0.0.0.0:${port}/webhook`);
+      console.log(`📡 Health check: http://0.0.0.0:${port}/health`);
     });
+  }
+
+  /**
+   * Get Express app (for testing or custom setup)
+   */
+  getApp(): express.Application {
+    return this.app;
   }
 }
 
