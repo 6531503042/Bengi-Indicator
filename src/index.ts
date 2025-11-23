@@ -4,22 +4,25 @@ import { DataService } from './services/dataService';
 import { SignalService } from './services/signalService';
 import { LineService } from './services/lineService';
 
-// Validate configuration with delay to allow logs to show
-setTimeout(() => {
-  try {
-    validateConfig();
-  } catch (error) {
-    console.error('\n❌ Configuration error:', error instanceof Error ? error.message : error);
-    console.error('\n⏳ Waiting 5 seconds before exit to see logs...\n');
-    setTimeout(() => {
-      process.exit(1);
-    }, 5000);
-    return;
-  }
-  
-  // Only initialize if config is valid
+// Validate configuration immediately (no delay needed)
+try {
+  validateConfig();
+} catch (error) {
+  console.error('\n❌ Configuration error:', error instanceof Error ? error.message : error);
+  console.error('\n⏳ Waiting 10 seconds before exit to see logs...\n');
+  setTimeout(() => {
+    process.exit(1);
+  }, 10000);
+  // Don't return, let it wait
+}
+
+// Only initialize if config is valid
+if (config.twelveDataApiKey && config.lineChannelAccessToken && config.lineUserId) {
   initializeApp();
-}, 500);
+} else {
+  console.error('\n⚠️  Cannot start app - missing required environment variables');
+  console.error('Please set variables in Railway Dashboard → Service → Variables tab\n');
+}
 
 function initializeApp() {
 

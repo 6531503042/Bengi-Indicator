@@ -55,11 +55,15 @@ export function validateConfig(): void {
   
   // Show all env vars that start with our keys (for debugging)
   const envKeys = Object.keys(process.env).filter(key => 
-    required.some(req => key.includes(req))
+    required.some(req => key.includes(req) || req.includes(key))
   );
   if (envKeys.length > 0) {
     console.log(`Found related env vars: ${envKeys.join(', ')}`);
   }
+  
+  // Show first 20 env var names (for debugging Railway setup)
+  const allEnvKeys = Object.keys(process.env).slice(0, 20);
+  console.log(`\n📋 Sample env vars (first 20): ${allEnvKeys.join(', ')}`);
   console.log('');
 
   // Debug: Log all environment variables (hide sensitive values)
