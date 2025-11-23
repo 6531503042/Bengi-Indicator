@@ -62,16 +62,19 @@ export class WebhookService {
       return;
     }
 
-    const text = event.message.text.toLowerCase().trim();
+    const text = event.message.text.trim();
+    const textLower = text.toLowerCase();
     const userId = event.source.userId || config.lineUserId;
 
-    // Timeframe-specific commands
-    const tf15mKeywords = ['tf-15m', 'tf-15', '15m', '15 นาที', '15นาที', 'ขอแนวทาง tf-15m'];
-    const tf30mKeywords = ['tf-30m', 'tf-30', '30m', '30 นาที', '30นาที', 'ขอแนวทาง tf-30m'];
-    const tf1hrKeywords = ['tf-1hr', 'tf-1h', 'tf-1', '1hr', '1h', '1 ชั่วโมง', '1ชั่วโมง', 'ขอแนวทาง tf-1hr'];
-    const tf4hrKeywords = ['tf-4hr', 'tf-4h', 'tf-4', '4hr', '4h', '4 ชั่วโมง', '4ชั่วโมง', 'ขอแนวทาง tf-4hr'];
+    console.log(`📩 Received message: "${text}" from user: ${userId.substring(0, 10)}...`);
 
-    // General signal keywords
+    // Timeframe-specific commands (check exact matches first)
+    const tf15mKeywords = ['ขอแนวทาง tf-15m', 'tf-15m', 'tf-15', '15m', '15 นาที', '15นาที'];
+    const tf30mKeywords = ['ขอแนวทาง tf-30m', 'tf-30m', 'tf-30', '30m', '30 นาที', '30นาที'];
+    const tf1hrKeywords = ['ขอแนวทาง tf-1hr', 'tf-1hr', 'tf-1h', 'tf-1', '1hr', '1h', '1 ชั่วโมง', '1ชั่วโมง'];
+    const tf4hrKeywords = ['ขอแนวทาง tf-4hr', 'tf-4hr', 'tf-4h', 'tf-4', '4hr', '4h', '4 ชั่วโมง', '4ชั่วโมง'];
+
+    // General signal keywords (exclude timeframe-specific)
     const signalKeywords = [
       'signal',
       'สัญญาณ',
@@ -92,23 +95,54 @@ export class WebhookService {
 
     const backtestKeywords = ['backtest', 'ทดสอบ', 'test', 'ทดลอง'];
 
-    // Check for timeframe-specific requests
-    if (tf15mKeywords.some((keyword) => text.includes(keyword))) {
+    // Check for timeframe-specific requests (exact match first, then includes)
+    const isTf15m = tf15mKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isTf30m = tf30mKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isTf1hr = tf1hrKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isTf4hr = tf4hrKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isHelp = helpKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isBacktest = backtestKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    );
+    const isSignal = signalKeywords.some((keyword) => 
+      textLower === keyword.toLowerCase() || textLower.includes(keyword.toLowerCase())
+    ) && !isTf15m && !isTf30m && !isTf1hr && !isTf4hr; // Exclude if already matched timeframe
+
+    console.log(`🔍 Matched: tf15m=${isTf15m}, tf30m=${isTf30m}, tf1hr=${isTf1hr}, tf4hr=${isTf4hr}, help=${isHelp}, signal=${isSignal}`);
+
+    if (isTf15m) {
+      console.log(`📊 Processing 15m request`);
       await this.sendTimeframeSignal(userId, '15min', '15m');
-    } else if (tf30mKeywords.some((keyword) => text.includes(keyword))) {
+    } else if (isTf30m) {
+      console.log(`📊 Processing 30m request`);
       await this.sendTimeframeSignal(userId, '30min', '30m');
-    } else if (tf1hrKeywords.some((keyword) => text.includes(keyword))) {
+    } else if (isTf1hr) {
+      console.log(`📊 Processing 1H request`);
       await this.sendTimeframeSignal(userId, '1h', '1H');
-    } else if (tf4hrKeywords.some((keyword) => text.includes(keyword))) {
+    } else if (isTf4hr) {
+      console.log(`📊 Processing 4H request`);
       await this.sendTimeframeSignal(userId, '4h', '4H');
-    } else if (signalKeywords.some((keyword) => text.includes(keyword))) {
-      // Default: send 1H signal (same as scheduled)
+    } else if (isSignal) {
+      console.log(`📊 Processing general signal request (default: 1H)`);
       await this.sendSignalResponse(userId);
-    } else if (helpKeywords.some((keyword) => text.includes(keyword))) {
+    } else if (isHelp) {
+      console.log(`📊 Processing help request`);
       await this.sendHelpMessage(userId);
-    } else if (backtestKeywords.some((keyword) => text.includes(keyword))) {
+    } else if (isBacktest) {
+      console.log(`📊 Processing backtest request`);
       await this.sendBacktestMessage(userId);
     } else {
+      console.log(`📊 Unknown command, sending help`);
       // Default: send help message with quick reply
       await this.sendHelpMessage(userId);
     }
@@ -172,27 +206,36 @@ export class WebhookService {
    * Send help message
    */
   private async sendHelpMessage(userId: string): Promise<void> {
-    const helpText = `📱 คำสั่งที่ใช้ได้\n` +
-      `═══════════════════\n\n` +
-      `📊 ขอสัญญาณ:\n` +
-      `• สัญญาณ\n` +
-      `• signal\n` +
-      `• สัญญาณใหม่\n` +
-      `• ราคา\n` +
-      `• btc\n\n` +
-      `📈 ทดสอบระบบ:\n` +
-      `• backtest\n` +
-      `• ทดสอบ\n\n` +
-      `❓ ความช่วยเหลือ:\n` +
-      `• help\n` +
-      `• ช่วย\n` +
-      `• คำสั่ง\n\n` +
-      `💡 ตัวอย่าง:\n` +
-      `พิมพ์ "สัญญาณ" เพื่อดูสัญญาณล่าสุด\n` +
-      `พิมพ์ "backtest" เพื่อดูผลการทดสอบ\n\n` +
-      `🤖 Bengi Indicator Premium`;
+    try {
+      console.log(`📤 Sending help message to user: ${userId.substring(0, 10)}...`);
+      const helpText = `📱 คำสั่งที่ใช้ได้\n` +
+        `═══════════════════\n\n` +
+        `📊 ขอสัญญาณตาม Timeframe:\n` +
+        `• ขอแนวทาง tf-15m (15 นาที)\n` +
+        `• ขอแนวทาง tf-30m (30 นาที)\n` +
+        `• ขอแนวทาง tf-1hr (1 ชั่วโมง)\n` +
+        `• ขอแนวทาง tf-4hr (4 ชั่วโมง)\n\n` +
+        `📊 ขอสัญญาณทั่วไป:\n` +
+        `• สัญญาณ (จะได้ 1H)\n` +
+        `• signal\n` +
+        `• ราคา\n` +
+        `• btc\n\n` +
+        `💡 ใช้ปุ่มด้านล่างเพื่อเลือก Timeframe\n` +
+        `หรือพิมพ์คำสั่งตามต้องการ\n\n` +
+        `🤖 Bengi Indicator Premium`;
 
-    await this.lineService.sendTextMessage(helpText, userId);
+      await this.lineService.sendTextMessageWithQuickReply(helpText, userId);
+      console.log(`✅ Help message sent successfully`);
+    } catch (error) {
+      console.error(`❌ Error sending help message:`, error);
+      // Try sending without quick reply as fallback
+      try {
+        const simpleHelp = `📱 คำสั่ง: help, สัญญาณ, ขอแนวทาง tf-15m/tf-30m/tf-1hr/tf-4hr`;
+        await this.lineService.sendTextMessage(simpleHelp, userId);
+      } catch (fallbackError) {
+        console.error(`❌ Fallback help message also failed:`, fallbackError);
+      }
+    }
   }
 
   /**
